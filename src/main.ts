@@ -17,7 +17,7 @@ async function run() {
       actionsCacheFolder: await core.getInput("actions-cache-folder"),
       cacheKey: await core.getInput("cache-key"),
       // XXX: update-tags is deprecated and used for backwards compatibility.
-      update: await core.getInput("update") || await core.getInput("update-tags")
+      update: await core.getBooleanInput("update") || await core.getBooleanInput("update-tags")
     };
 
     let emsdkFolder;
@@ -47,8 +47,9 @@ async function run() {
     }
 
     if (!emsdkFolder) {
-      const emsdkArchive = await tc.downloadTool("https://github.com/emscripten-core/emsdk/archive/main.zip");
+      const emsdkArchive = await tc.downloadTool("https://github.com/emscripten-core/emsdk/archive/3.1.54.zip");
       emsdkFolder = await tc.extractZip(emsdkArchive);
+      await io.mv(path.join(emsdkFolder, 'emsdk-3.1.54'), path.join(emsdkFolder, 'emsdk-main'));
     } else {
       foundInCache = true;
     }
@@ -58,6 +59,8 @@ async function run() {
     if (os.platform() === "win32") {
       emsdk = `powershell ${path.join(emsdkFolder, 'emsdk-main', 'emsdk.ps1')}`;
     }
+
+    core.warning(`EMSDK path "${emsdk}" - check how it will work.`);
 
     if (emArgs.noInstall === "true") {
       core.addPath(path.join(emsdkFolder, 'emsdk-main'));

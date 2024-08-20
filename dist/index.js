@@ -58,7 +58,7 @@ function run() {
                 actionsCacheFolder: yield core.getInput("actions-cache-folder"),
                 cacheKey: yield core.getInput("cache-key"),
                 // XXX: update-tags is deprecated and used for backwards compatibility.
-                update: (yield core.getInput("update")) || (yield core.getInput("update-tags"))
+                update: (yield core.getBooleanInput("update")) || (yield core.getBooleanInput("update-tags"))
             };
             let emsdkFolder;
             let foundInCache = false;
@@ -86,8 +86,9 @@ function run() {
                 }
             }
             if (!emsdkFolder) {
-                const emsdkArchive = yield tc.downloadTool("https://github.com/emscripten-core/emsdk/archive/main.zip");
+                const emsdkArchive = yield tc.downloadTool("https://github.com/emscripten-core/emsdk/archive/3.1.54.zip");
                 emsdkFolder = yield tc.extractZip(emsdkArchive);
+                yield io.mv(path.join(emsdkFolder, 'emsdk-3.1.54'), path.join(emsdkFolder, 'emsdk-main'));
             }
             else {
                 foundInCache = true;
@@ -96,6 +97,7 @@ function run() {
             if (os.platform() === "win32") {
                 emsdk = `powershell ${path.join(emsdkFolder, 'emsdk-main', 'emsdk.ps1')}`;
             }
+            core.warning(`EMSDK path "${emsdk}" - check how it will work.`);
             if (emArgs.noInstall === "true") {
                 core.addPath(path.join(emsdkFolder, 'emsdk-main'));
                 core.exportVariable("EMSDK", path.join(emsdkFolder, 'emsdk-main'));
